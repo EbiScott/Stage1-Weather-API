@@ -8,22 +8,22 @@ load_dotenv()
 app = Flask(__name__)
 
 def get_ip(ip):
-    try:
-        visitor_ip = requests.get(f"https://ip-api.com/json/{ip}")
-        return visitor_ip.json()
-    except Exception as e:
-        return {"city": "Unknown", "temperature": "Unknown"}
+    visitor_ip = requests.get(f"https://ip-api.com/json/{ip}")
+    response =  visitor_ip.json()
+    city = response.get("city", "Unknown")
+    return city
+
 
 def get_weather(city):
     api_key = os.getenv("OPEN_WEATHER_API_KEY")
+    weather_reply = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
+    weather =  weather_reply.json()
 
-    try:
-        city = get_ip(request.remote_addr)["city"]
-        weather_reply = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
-        weather =  weather_reply.json()
-        return weather['main']['temp']
-    except Exception as e:
-        return "Unknown"
+    if weather.get('cod') == 200:
+        temperature = weather['main']['temp']
+    else:
+        temperature = "N/A"
+    return temperature
 
 
 
@@ -32,14 +32,17 @@ def hello():
     visitor_name = request.args.get('visitor_name', 'Guest')
     client_ip = request.remote_addr
 
-    ip_info = get_ip(client_ip)
-    city = ip_info.get('city', 'Unknown')
-    temperature = get_weather(city)
+    city = get_ip(client_ip)
+    if city != "Unknown":
+        temperature = get_weather(city)
+        greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city}"
+    else:
+        greeting = f"Hello, {visitor_name}! The temperature is not available because the location could not be determined."
 
     response = {
         "client_ip": client_ip,
         "location": city,
-        "greeting": f"Hello, {visitor_name}!, the temperature is {temperature} degrees Celsius in {city}"
+        "greeting": greeting
     }
     
     return jsonify(response)
