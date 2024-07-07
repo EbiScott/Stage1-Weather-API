@@ -15,12 +15,12 @@ def get_ip(ip):
 
 
 def get_weather(city):
-    api_key = os.getenv("OPEN_WEATHER_API_KEY")
-    weather_reply = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric")
+    api_key = os.getenv("WEATHERAPI_KEY")
+    weather_reply = requests.get(f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}&aqi=no&lang=en&unit=m")
     weather =  weather_reply.json()
 
-    if weather.get('cod') == 200:
-        temperature = weather['main']['temp']
+    if "current" in weather:
+        temperature = weather['current']['temp_c']
     else:
         temperature = "N/A"
     return temperature
@@ -44,10 +44,9 @@ def hello():
         print(f"temperature: {temperature}")
 
         greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city}"
+
     else:
-        greeting = f"Hello, {visitor_name}! The temperature is not available because the location could not be determined."
-
-
+        greeting = f"Hello, {visitor_name}! Unfortunately, I could not determine your location"
 
     response = {
         "client_ip": client_ip,
