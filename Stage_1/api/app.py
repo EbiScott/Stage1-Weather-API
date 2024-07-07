@@ -36,28 +36,19 @@ def get_weather(city):
 def hello():
     visitor_name = request.args.get('visitor_name', 'Guest')
     client_ip = request.remote_addr
-
-    print(f"client_ip: {client_ip}")
-
     city = get_ip(client_ip)
-    
-    print(f"city: {client_ip}")
-    
-    if city != "Unknown":
+        
+    if city:
         temperature, city_new = get_weather(city)
-
-        print(f"temperature: {temperature}")
-
         greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city_new}"
-
     else:
         city_new = "Unknown"
         greeting = f"Hello, {visitor_name}! Unfortunately, I could not determine your location"
 
     response = {
         "client_ip": client_ip,
-        "location": city_new,
-        "greeting": greeting
+        "greeting": greeting,
+        "location": city_new
     }
     
     return jsonify(response)
