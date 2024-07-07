@@ -32,12 +32,22 @@ def hello():
     visitor_name = request.args.get('visitor_name', 'Guest')
     client_ip = request.remote_addr
 
+    print(f"client_ip: {client_ip}")
+
     city = get_ip(client_ip)
+    
+    print(f"city: {client_ip}")
+    
     if city != "Unknown":
         temperature = get_weather(city)
+
+        print(f"temperature: {temperature}")
+
         greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city}"
     else:
         greeting = f"Hello, {visitor_name}! The temperature is not available because the location could not be determined."
+
+
 
     response = {
         "client_ip": client_ip,
