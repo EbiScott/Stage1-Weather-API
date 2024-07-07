@@ -25,7 +25,7 @@ def get_weather(city):
         temperature = "N/A"
 
     if "location" in weather:
-        city_new = f"{weather['location']['name']}, {weather['location']['region']}"
+        city_new = f"{weather['location']['name']}"
     else:
         city_new = "N/A"
     
