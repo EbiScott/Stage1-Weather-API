@@ -16,7 +16,7 @@ def get_ip(ip):
 
 def get_weather(city):
     api_key = os.getenv("WEATHERAPI_KEY")
-    weather_reply = requests.get(f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}&aqi=no&lang=en&unit=m")
+    weather_reply = requests.get(f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}")
     weather =  weather_reply.json()
 
     if "current" in weather:
