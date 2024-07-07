@@ -16,15 +16,20 @@ def get_ip(ip):
 
 def get_weather(city):
     api_key = os.getenv("WEATHERAPI_KEY")
-    weather_reply = requests.get(f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}")
+    weather_reply = requests.get(f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={city}&aqi=no")
     weather =  weather_reply.json()
 
     if "current" in weather:
         temperature = weather['current']['temp_c']
     else:
         temperature = "N/A"
-    return temperature
 
+    if "location" in weather:
+        city_new = f"{weather['location']['name']}, {weather['location']['region']}"
+    else:
+        city_new = "N/A"
+    
+    return temperature, city_new
 
 
 @app.route('/api/hello')
@@ -39,18 +44,19 @@ def hello():
     print(f"city: {client_ip}")
     
     if city != "Unknown":
-        temperature = get_weather(city)
+        temperature, city_new = get_weather(city)
 
         print(f"temperature: {temperature}")
 
-        greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city}"
+        greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city_new}"
 
     else:
+        city_new = "Unknown"
         greeting = f"Hello, {visitor_name}! Unfortunately, I could not determine your location"
 
     response = {
         "client_ip": client_ip,
-        "location": city,
+        "location": city_new,
         "greeting": greeting
     }
     
