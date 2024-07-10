@@ -35,7 +35,7 @@ def get_weather(city):
 @app.route('/api/hello')
 def hello():
     visitor_name = request.args.get('visitor_name', 'Guest')
-    client_ip = request.remote_addr
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     city = get_ip(client_ip)
         
     if city:
