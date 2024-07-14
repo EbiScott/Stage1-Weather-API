@@ -1,6 +1,9 @@
 import os
 import psycopg2
 from flask import *
+from werkzeug.security import *
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import *
 from dotenv  import load_dotenv
 
 load_dotenv()
@@ -8,44 +11,32 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 connection = psycopg2.connect(os.getenv("DATABASE_URL"))
-
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 db = SQLALCHEMY(app)
+jwt = JWTManager(app)
 
 
 # CREATE_USERS_TABLE  = (CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, firstName TEXT, LastNAME TEXT, email EMAIL, password PASSWORD))
 
-class UserDataBase():
+class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=True)
 
-    def __init__(self, firstname, lastname, email, password, phone):
-        self.firstname = firstname
-        self.lastname = lastname
-        self.email = email
-        self.password = password
-        self.phone = phone
 
-
-class OrganisationDataBase():
-    __tablename__ = "organisation"
-    orgId = db.column(db.string(100), nullable=False)
-    name = db.column(db.string(100), nullable=False)
-    description = db.column(db.string(500), nullable=False)
-
-    def __init__(self, orgId, name, description):
-        self.orgId = orgId
-        self.name = name
-        self.description = description
 
 
 @app.route("/")
 def home():
-    return "Welcome to the home page"
+    return """
+    <h1>Welcome to My Homepage</h1>
+    <p><a href="/auth/register">Register</a></p>
+    <p><a href="/auth/login">Login</a></p>
+    """
 
 
 @app.route("/auth/register", methods=["POST"])
@@ -53,7 +44,9 @@ def register():
     firstname = StringField("First Name", validators=[DataRequired()])
     lastname = StringField("Last Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("********", validators=[DataRequired(), Password()])
+    password = PasswordField("********", validators=[
+        DataRequired(), 
+        Password()])
     phone_number = NumberField("Phone no with country code", validators=[Optional(), Number()])
 
     if request.method == "POST":
@@ -69,9 +62,7 @@ def register():
 
         return redirect(url_for("home"))
         
-
-    return render_template("register.html")
-
+    
 
 @app.route("/auth/login", methods=["POST"])
 def login():
