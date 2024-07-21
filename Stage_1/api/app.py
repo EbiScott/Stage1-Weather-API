@@ -11,7 +11,9 @@ def get_ip(ip):
     visitor_ip = requests.get(f"https://ip-api.com/json/{ip}")
     response =  visitor_ip.json()
     city = response.get("city", "Unknown")
-    return city
+    region = response.get("region", "Unknown")
+    country = response.get("country", "Unknown")
+    return city, region, country
 
 
 def get_weather(city):
@@ -31,27 +33,29 @@ def get_weather(city):
     
     return temperature, city_new
 
-
-@app.route('/api/hello')
-def hello():
-    visitor_name = request.args.get('visitor_name', 'Guest')
-    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-    city = get_ip(client_ip)
-        
-    if city:
-        temperature, city_new = get_weather(city)
-        greeting = f"Hello, {visitor_name}! The temperature is {temperature} degrees Celsius in {city_new}"
+def create_greeting(ip):
+    city, region, country = get_ip(ip)
+    temperature, resolved_city = get_weather(city)
+    
+    if resolved_city != "N/A" and temperature != "N/A":
+        greeting = f"Hello, {city}! The temperature is {temperature} degrees Celsius in {region} {country}"
     else:
-        city_new = "Unknown"
-        greeting = f"Hello, {visitor_name}! Unfortunately, I could not determine your location"
-
-    response = {
-        "client_ip": client_ip,
+        greeting = "Hello, Someone! Unfortunately, I could not determine your location"
+    
+    result = {
+        "client_ip": ip,
         "greeting": greeting,
-        "location": city_new
+        "location": f"{region} {country}" if resolved_city != "N/A" else "Unknown"
     }
     
-    return jsonify(response)
+    return result
+
+    
+@app.route('/api/hello')
+def hello():
+    ip = request.remote_addr
+    result = create_greeting(ip)
+    return jsonify(result)
 
 
 if __name__ == "__main__":
